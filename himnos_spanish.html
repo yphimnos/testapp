@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visor de PDF con Menú Interactivo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      margin: 20px;
+      height: 100vh;
+      align-items: flex-start;
+    }
+
+    #container {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      max-width: 1400px; /* Vergrößerte Breite des Containers */
+      gap: 20px;
+      position: relative;
+    }
+
+    #menu, #right-navigation {
+      width: 250px;
+      background-color: #f1f1f1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      height: auto;
+      text-align: center;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Linkes Menü - Überschriften zentriert */
+    #menu h3, #menu h4 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 16px; /* Schriftgröße für "Navegar a:" */
+    }
+
+    /* Gleiche Schriftgröße für die "Navegar a:" und "Buscar frase:" Überschriften */
+    #menu h3, #right-navigation h3 {
+      font-size: 16px; /* Gleiche Schriftgröße für beide */
+    }
+
+    /* Buttons & Inputs zentriert */
+    #menu button, #menu input[type=number] {
+      text-align: center;
+      font-size: 16px;
+      margin: 5px 0;
+      padding: 8px 10px;
+      width: 100%;
+      box-sizing: border-box;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #008CBA;
+      color: white;
+    }
+
+    /* Ausnahme Suchfeld mit weißem Hintergrund und ohne blauen Fokus */
+    #menu input[type=number] {
+      background-color: white;
+      color: black;
+      border: 1px solid #ccc;
+    }
+    #menu input[type=number]:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #008CBA;
+      background-color: white;
+      color: black;
+    }
+
+    #menu button:hover {
+      background-color: #007B9A;
+    }
+
+    /* Spezielle Container für Buttons in Index */
+    .menu-special-buttons {
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+    }
+
+    #pdf-container {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Rechtes Menü identisch mit links (außer Suchfeld) */
+    #right-navigation {
+      width: 250px;
+      background-color: #f1f1f1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      height: auto;
+      text-align: center;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    #right-navigation button, #right-navigation input[type=text] {
+      font-size: 16px;
+      margin: 5px 0;
+      padding: 8px 10px;
+      width: 100%;
+      box-sizing: border-box;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #008CBA;
+      color: white;
+    }
+    #right-navigation button:hover {
+      background-color: #007B9A;
+    }
+    #right-navigation input[type=text] {
+      background-color: white;
+      color: black;
+      border: 1px solid #ccc;
+    }
+    #right-navigation input[type=text]:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #008CBA;
+      background-color: white;
+      color: black;
+    }
+
+    /* Pfeil-Button Styles */
+    button.arrow-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px; /* Abstand zwischen Pfeil und Text */
+      background-color: #008CBA;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button.arrow-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: white;
+    }
+
+    button.arrow-btn.left svg {
+      transform: rotate(180deg);
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+      #right-navigation {
+        display: none;
+      }
+      #container {
+        flex-direction: column;
+      }
+      #menu, #pdf-container {
+        width: 100%;
+        max-width: none;
+      }
+      #pdf-container {
+        margin-top: 10px;
+        order: 1; /* PDF Inhalt zuerst */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #menu {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        order: 2; /* Menü nach PDF Viewer */
+      }
+      /* Obere Gruppe: Portada + Notas + Página anterior + Página siguiente */
+      .menu-top-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      /* Rest (Nro. de cántico) nach unten */
+      .menu-bottom {
+        order: 1; /* Nro. de cántico wird zuerst angezeigt */
+      }
+
+      /* Sorgt dafür, dass "Buscar frase" nach "Nro. de cántico" kommt */
+      .menu-search-text-mobile {
+        order: 2; /* "Buscar frase" wird nach "Nro. de cántico" angezeigt */
+        margin-top: 5px; /* Abstand verringert */
+      }
+    }
+
+    /* Desktop Styles (größer als 768px) */
+    @media (min-width: 769px) {
+      #menu .menu-search-text-mobile {
+        display: none; /* "Buscar frase" wird auf Desktop ausgeblendet */
+      }
+    }
+
+    /* Neue Stile für die linke Menü-Suchfunktion (Buscar frase) */
+    #menu .menu-search-text-mobile {
+      margin-top: 20px;
+      text-align: center; /* Zentriert die Elemente */
+    }
+
+    #menu .menu-search-text-mobile h4 {
+      font-size: 16px; /* Gleiche Schriftgröße wie auf der rechten Seite */
+      color: black;
+      margin-bottom: 10px; /* Etwas Abstand nach unten */
+    }
+
+    #menu .menu-search-text-mobile input[type=text] {
+      font-size: 16px; /* Gleiche Schriftgröße wie auf der rechten Seite */
+      margin-bottom: 10px; /* Abstand zum Button */
+      padding: 8px 10px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+    }
+
+    #menu .menu-search-text-mobile input[type=text]::placeholder {
+      color: #aaa; /* Farbe des Platzhalters */
+    }
+
+    #menu .menu-search-text-mobile button {
+      font-size: 16px; /* Gleiche Schriftgröße wie auf der rechten Seite */
+      padding: 8px 10px;
+      width: 100%;
+      background-color: #008CBA;
+      color: white;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+    }
+
+    #menu .menu-search-text-mobile button:hover {
+      background-color: #007B9A;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+
+    <!-- Linkes Menü -->
+    <div id="menu">
+      <!-- Mobile: obere Gruppe -->
+      <div class="menu-top-mobile">
+        <h3>Navegar a:</h3>
+        <div class="menu-special-buttons">
+          <button onclick="goToPortada()">Portada</button>
+          <button onclick="goToNotas()">Notas explicativas</button>
+        </div>
+
+        <!-- Buttons mit Pfeilen in der Reihenfolge: Página anterior, Página siguiente -->
+        <button class="arrow-btn left" onclick="goToPrevPage()">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M8 5l8 7-8 7V5z"/>
+          </svg>
+          Página Anterior
+        </button>
+        <button class="arrow-btn right" onclick="goToNextPage()">
+          Página Siguiente
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M8 5l8 7-8 7V5z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile: untere Gruppe -->
+      <div class="menu-bottom">
+        <h4>Nro. de cántico:</h4>
+        <input type="number" id="search-num" min="2001" max="2700" placeholder="Nro. himno a buscar" />
+        <button onclick="searchByNumber()">Buscar</button>
+      </div>
+
+      <!-- Neue Suchfunktion "Buscar frase" im linken Menü -->
+      <div class="menu-search-text-mobile">
+        <h4>Buscar frase:</h4>
+        <input type="text" id="search-text-left" placeholder="Buscar palabra o frase" />
+        <button onclick="searchTextLeft()">Buscar</button>
+      </div>
+    </div>
+
+    <!-- PDF Container -->
+    <div id="pdf-container">
+      <canvas id="pdf-render"></canvas>
+    </div>
+
+    <!-- Rechtes Menü -->
+    <div id="right-navigation">
+      <h3>Navegar a:</h3>
+      <button class="arrow-btn left" onclick="goToPrevPage()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M8 5l8 7-8 7V5z"/>
+        </svg>
+        Página Anterior
+      </button>
+      <button class="arrow-btn right" onclick="goToNextPage()">
+        Página Siguiente
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M8 5l8 7-8 7V5z"/>
+        </svg>
+      </button>
+
+      <h4>Buscar frase:</h4>
+      <input type="text" id="search-text-right" placeholder="Buscar palabra o frase" />
+      <button onclick="searchTextRight()">Buscar</button>
+    </div>
+  </div>
+
+  <script>
+    const url = 'meinedatei.pdf'; // Hier den PDF-Dateinamen eintragen
+
+    let pdfDoc = null,
+        pageNum = 1,
+        pageRendering = false,
+        pageNumPending = null;
+
+    let currentScale = 1.5;
+
+    const canvas = document.getElementById('pdf-render');
+    const ctx = canvas.getContext('2d');
+
+    // PDF Seiten rendern
+    function renderPage(num) {
+      pageRendering = true;
+
+      pdfDoc.getPage(num).then(function(page) {
+        const viewport = page.getViewport({ scale: currentScale });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+        };
+        const renderTask = page.render(renderContext);
+
+        renderTask.promise.then(function() {
+          pageRendering = false;
+
+          if (pageNumPending !== null) {
+            renderPage(pageNumPending);
+            pageNumPending = null;
+          }
+        });
+      });
+
+      pageNum = num;
+      // Suchfelder zurücksetzen
+      document.getElementById('search-num').value = '';
+      const searchRight = document.getElementById('search-text-right');
+      if(searchRight) searchRight.value = '';
+    }
+
+    function queueRenderPage(num) {
+      if (pageRendering) {
+        pageNumPending = num;
+      } else {
+        renderPage(num);
+      }
+    }
+
+    // Navigation
+    function goToNextPage() {
+      if (pageNum < pdfDoc.numPages) {
+        pageNum++;
+        queueRenderPage(pageNum);
+      }
+    }
+
+    function goToPrevPage() {
+      if (pageNum > 1) {
+        pageNum--;
+        queueRenderPage(pageNum);
+      }
+    }
+
+    // Neue Buttons: Portada (Seite 1) und Notas explicativas (Seite 2)
+    function goToPortada() {
+      queueRenderPage(1);
+    }
+
+    function goToNotas() {
+      queueRenderPage(2);
+    }
+
+    // Suchfunktion links (nummernbasiert)
+    function searchByNumber() {
+      const input = document.getElementById('search-num').value;
+      const number = parseInt(input, 10);
+      if (number >= 2001 && number <= 2700) {
+        const targetPage = number - 1998; // 2001 -> Seite 3
+        if (targetPage >= 1 && targetPage <= pdfDoc.numPages) {
+          queueRenderPage(targetPage);
+        } else {
+          alert('¡Número fuera de rango!');
+        }
+      } else {
+        alert('Número válido entre 2001 y 2700.');
+      }
+    }
+
+    // Suchfunktion rechts (Textsuche im PDF mit Highlighting)
+    async function searchTextRight() {
+      const query = document.getElementById('search-text-right').value.trim().toLowerCase();
+      if (!query) {
+        alert('Palabra o frase a buscar');
+        return;
+      }
+
+      let foundPage = -1;
+
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const textContent = await page.getTextContent();
+        const textItems = textContent.items.map(item => item.str.toLowerCase());
+        const pageText = textItems.join(' ');
+
+        if (pageText.includes(query)) {
+          foundPage = i;
+          break;
+        }
+      }
+
+      if (foundPage > 0) {
+        queueRenderPage(foundPage);
+      } else {
+        alert('No se encontró la palabra o frase.');
+      }
+    }
+
+    // Suchfunktion links (Textsuche im PDF mit Highlighting)
+    async function searchTextLeft() {
+      const query = document.getElementById('search-text-left').value.trim().toLowerCase();
+      if (!query) {
+        alert('Palabra o frase a buscar');
+        return;
+      }
+
+      let foundPage = -1;
+
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const textContent = await page.getTextContent();
+        const textItems = textContent.items.map(item => item.str.toLowerCase());
+        const pageText = textItems.join(' ');
+
+        if (pageText.includes(query)) {
+          foundPage = i;
+          break;
+        }
+      }
+
+      if (foundPage > 0) {
+        queueRenderPage(foundPage);
+      } else {
+        alert('No se encontró la palabra o frase.');
+      }
+    }
+
+    // PDF laden und initial anzeigen
+    pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+      pdfDoc = pdfDoc_;
+      renderPage(pageNum);
+    });
+  </script>
+</body>
+</html>
