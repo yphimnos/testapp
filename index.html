@@ -26,6 +26,7 @@
       gap: 20px;
     }
 
+    /* MENU IZQUIERDO */
     #menu {
       flex: 1 1 250px;
       min-width: 200px;
@@ -35,6 +36,16 @@
       border: 1px solid #ccc;
       text-align: center;
       box-sizing: border-box;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centrar contenido verticalmente */
+      max-height: 600px;       /* Limita la altura total del menú */
+      margin: auto 0;          /* Centrado vertical dentro del contenedor padre */
+    }
+
+    .menu-top-mobile {
+      margin-bottom: 30px; /* Separación entre parte 1 y parte 2 */
     }
 
     #menu h3, #menu h4 {
@@ -63,7 +74,8 @@
       background-color: #007B9A;
     }
 
-    #menu input[type=number], #menu input[type=text] {
+    #menu input[type=number],
+    #menu input[type=text] {
       background-color: white;
       color: black;
       border: 1px solid #ccc;
@@ -95,7 +107,6 @@
       cursor: pointer;
       width: 100%;
       box-sizing: border-box;
-      margin: 5px 0;
     }
 
     .arrow-btn svg {
@@ -108,6 +119,7 @@
       transform: rotate(180deg);
     }
 
+    /* CONTENEDOR PDF */
     #pdf-container {
       flex: 2 1 600px;
       min-width: 300px;
@@ -123,7 +135,7 @@
       height: auto;
     }
 
-    /* Mobile + Tablet Layout (hasta 1024px) */
+    /* MOBILE + TABLET LAYOUT (hasta 1024px) */
     @media (max-width: 1024px) {
       #container {
         flex-direction: column;
@@ -136,23 +148,26 @@
       }
 
       #menu {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
         order: 2;
+        max-height: none; /* Quitar max-height para que no limite en mobile */
+        margin: 0; /* resetear margen para mobile */
+        justify-content: flex-start; /* en móvil contenido no se centra vertical */
       }
 
-      #pdf-container {
-        order: 1;
-        margin-top: 10px;
+      .menu-top-mobile {
+        margin-bottom: 20px; /* algo menos en móvil */
       }
     }
 
+    /* DESKTOP LAYOUT (desde 1025px) */
+    @media (min-width: 1025px) {
+      /* Eliminado el menú derecho - ya no existe */
+    }
   </style>
 </head>
 <body>
   <div id="container">
-    <!-- Menú izquierdo -->
+    <!-- Menu Izquierdo -->
     <div id="menu">
       <div class="menu-top-mobile">
         <h3>Navegar a:</h3>
@@ -176,8 +191,9 @@
       </div>
 
       <div class="menu-bottom">
-        <h4>Búsqueda:</h4>
+        <h4>Nro. de cántico:</h4>
         <input type="number" id="search-num" min="2001" max="2700" placeholder="Nro. de himno a buscar" />
+        
         <input type="text" id="search-text-left" placeholder="Palabra o frase a buscar" />
         <button onclick="searchBoth()">Buscar</button>
       </div>
@@ -190,7 +206,7 @@
   </div>
 
   <script>
-    const url = 'meinedatei.pdf'; // Cambia aquí al nombre o ruta de tu PDF
+    const url = 'meinedatei.pdf'; // Cambia por el nombre de tu archivo PDF
 
     let pdfDoc = null,
         pageNum = 1,
@@ -224,7 +240,8 @@
 
       pageNum = num;
       document.getElementById('search-num').value = '';
-      document.getElementById('search-text-left').value = '';
+      const searchTextInput = document.getElementById('search-text-left');
+      if (searchTextInput) searchTextInput.value = '';
     }
 
     function queueRenderPage(num) {
@@ -257,12 +274,30 @@
       queueRenderPage(2);
     }
 
+    function searchByNumber() {
+      const input = document.getElementById('search-num').value;
+      const number = parseInt(input, 10);
+      if (number >= 2001 && number <= 2700) {
+        const targetPage = number - 1998;
+        if (targetPage >= 1 && targetPage <= pdfDoc.numPages) {
+          queueRenderPage(targetPage);
+          return true;
+        } else {
+          alert('¡Número fuera de rango!');
+          return false;
+        }
+      } else {
+        alert('Número válido entre 2001 y 2700.');
+        return false;
+      }
+    }
+
     async function searchText(query) {
       for (let i = 1; i <= pdfDoc.numPages; i++) {
         const page = await pdfDoc.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str.toLowerCase()).join(' ');
-        if (pageText.includes(query)) {
+        if (pageText.includes(query.toLowerCase())) {
           return i;
         }
       }
@@ -270,20 +305,17 @@
     }
 
     async function searchBoth() {
+      // Primero intentar buscar número si es válido
       const numberInput = document.getElementById('search-num').value.trim();
-      const textInput = document.getElementById('search-text-left').value.trim().toLowerCase();
-
-      let found = false;
-
-      if (numberInput) {
+      if (numberInput !== '') {
         const number = parseInt(numberInput, 10);
-        if (number >= 2001 && number <= 2700) {
-          const targetPage = number - 1998;
-          if (targetPage >= 1 && targetPage <= pdfDoc.numPages) {
-            queueRenderPage(targetPage);
-            found = true;
+        if (!isNaN(number) && number >= 2001 && number <= 2700) {
+          const pageFromNumber = number - 1998;
+          if (pageFromNumber >= 1 && pageFromNumber <= pdfDoc.numPages) {
+            queueRenderPage(pageFromNumber);
+            return;
           } else {
-            alert('Número fuera de rango');
+            alert('Número fuera de rango.');
             return;
           }
         } else {
@@ -292,27 +324,24 @@
         }
       }
 
-      if (textInput) {
-        const foundPage = await searchText(textInput);
-        if (foundPage > 0) {
-          queueRenderPage(foundPage);
-          found = true;
-        } else if (!found) {
-          alert('No se encontró la palabra o frase.');
-        }
+      // Si no hay número válido, buscar texto
+      const textInput = document.getElementById('search-text-left').value.trim();
+      if (textInput === '') {
+        alert('Ingrese un número o palabra/frase para buscar.');
+        return;
       }
 
-      if (!found) {
-        alert('Por favor, ingresa un número o una frase para buscar.');
+      const foundPage = await searchText(textInput);
+      if (foundPage > 0) {
+        queueRenderPage(foundPage);
+      } else {
+        alert('No se encontró la palabra o frase.');
       }
     }
 
-    // Carga el PDF y muestra la primera página
     pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
       pdfDoc = pdfDoc_;
       renderPage(pageNum);
-    }).catch(function(error){
-      alert('Error al cargar el PDF: ' + error.message);
     });
   </script>
 </body>
