@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -21,9 +22,9 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 20px;
       width: 100%;
       max-width: 1400px;
+      gap: 20px;
     }
 
     #menu, #right-navigation {
@@ -37,14 +38,17 @@
       box-sizing: border-box;
     }
 
-    #menu h3, #menu h4, #right-navigation h3, #right-navigation h4 {
+    #menu h3, #menu h4,
+    #right-navigation h3, #right-navigation h4 {
       font-size: 16px;
       text-align: center;
       margin-bottom: 10px;
     }
 
-    /* Gemeinsame Button- und Eingabefeldstile */
-    button, input[type=number], input[type=text], .menu-search-text-mobile button {
+    #menu button, #menu input[type=number],
+    #right-navigation button, #right-navigation input[type=text],
+    #menu .menu-search-text-mobile input[type=text],
+    #menu .menu-search-text-mobile button {
       font-size: 16px;
       margin: 5px 0;
       padding: 8px 10px;
@@ -53,29 +57,69 @@
       border-radius: 4px;
     }
 
-    button, .menu-search-text-mobile button {
+    #menu button,
+    #right-navigation button,
+    #menu .menu-search-text-mobile button {
       background-color: #008CBA;
       color: white;
       border: none;
       cursor: pointer;
     }
 
-    button:hover, .menu-search-text-mobile button:hover {
+    #menu button:hover,
+    #right-navigation button:hover,
+    #menu .menu-search-text-mobile button:hover {
       background-color: #007B9A;
     }
 
-    input[type=number], input[type=text], .menu-search-text-mobile input[type=text] {
+    #menu input[type=number],
+    #right-navigation input[type=text],
+    #menu .menu-search-text-mobile input[type=text] {
       background-color: white;
       color: black;
       border: 1px solid #ccc;
     }
 
-    input:focus {
+    #menu input:focus,
+    #right-navigation input:focus,
+    #menu .menu-search-text-mobile input:focus {
       outline: none;
       box-shadow: 0 0 0 2px #008CBA;
     }
 
-    /* PDF-Viewer */
+    .menu-special-buttons {
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .arrow-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: #008CBA;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .arrow-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: white;
+    }
+
+    .arrow-btn.left svg {
+      transform: rotate(180deg);
+    }
+
     #pdf-container {
       flex: 2 1 600px;
       min-width: 300px;
@@ -107,20 +151,16 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        order: 2; /* Menü kommt nach dem PDF-Viewer */
+        order: 2;
       }
 
       #pdf-container {
-        order: 1; /* PDF-Viewer kommt zuerst */
+        order: 1;
         margin-top: 10px;
       }
 
       #right-navigation {
         display: none;
-      }
-
-      .arrow-btn {
-        display: none; /* Verhindert das Anzeigen der Navigationsbuttons */
       }
 
       .menu-top-mobile {
@@ -144,6 +184,21 @@
       #menu .menu-search-text-mobile {
         display: none;
       }
+    }
+
+    /* Mobile-spezifische Suchbox */
+    #menu .menu-search-text-mobile {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #menu .menu-search-text-mobile h4 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    #menu .menu-search-text-mobile input[type=text]::placeholder {
+      color: #aaa;
     }
   </style>
 </head>
