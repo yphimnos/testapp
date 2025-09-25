@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -22,11 +21,41 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+      gap: 20px;
       width: 100%;
       max-width: 1400px;
-      gap: 20px;
     }
 
+    /* Gemeinsame Stile für Button und Eingabefelder */
+    button, input[type=number], input[type=text], .menu-search-text-mobile button {
+      font-size: 16px;
+      margin: 5px 0;
+      padding: 8px 10px;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 4px;
+      background-color: #008CBA;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover, .menu-search-text-mobile button:hover {
+      background-color: #007B9A;
+    }
+
+    input[type=number], input[type=text], .menu-search-text-mobile input[type=text] {
+      background-color: white;
+      color: black;
+      border: 1px solid #ccc;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #008CBA;
+    }
+
+    /* Menüboxen */
     #menu, #right-navigation {
       flex: 1 1 250px;
       min-width: 200px;
@@ -34,92 +63,19 @@
       background-color: #f1f1f1;
       padding: 10px;
       border: 1px solid #ccc;
-      text-align: center;
-      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 10px;
     }
 
-    #menu h3, #menu h4,
-    #right-navigation h3, #right-navigation h4 {
+    h3, h4 {
       font-size: 16px;
       text-align: center;
       margin-bottom: 10px;
     }
 
-    #menu button, #menu input[type=number],
-    #right-navigation button, #right-navigation input[type=text],
-    #menu .menu-search-text-mobile input[type=text],
-    #menu .menu-search-text-mobile button {
-      font-size: 16px;
-      margin: 5px 0;
-      padding: 8px 10px;
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 4px;
-    }
-
-    #menu button,
-    #right-navigation button,
-    #menu .menu-search-text-mobile button {
-      background-color: #008CBA;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    #menu button:hover,
-    #right-navigation button:hover,
-    #menu .menu-search-text-mobile button:hover {
-      background-color: #007B9A;
-    }
-
-    #menu input[type=number],
-    #right-navigation input[type=text],
-    #menu .menu-search-text-mobile input[type=text] {
-      background-color: white;
-      color: black;
-      border: 1px solid #ccc;
-    }
-
-    #menu input:focus,
-    #right-navigation input:focus,
-    #menu .menu-search-text-mobile input:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px #008CBA;
-    }
-
-    .menu-special-buttons {
-      margin-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .arrow-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background-color: #008CBA;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .arrow-btn svg {
-      width: 16px;
-      height: 16px;
-      fill: white;
-    }
-
-    .arrow-btn.left svg {
-      transform: rotate(180deg);
-    }
-
+    /* PDF Container */
     #pdf-container {
       flex: 2 1 600px;
       min-width: 300px;
@@ -144,38 +100,17 @@
 
       #menu, #pdf-container {
         width: 100%;
-        max-width: none;
-      }
-
-      #menu {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        order: 2;
-      }
-
-      #pdf-container {
-        order: 1;
-        margin-top: 10px;
       }
 
       #right-navigation {
         display: none;
       }
 
-      .menu-top-mobile {
+      .menu-top-mobile, .menu-bottom, .menu-search-text-mobile {
         display: flex;
         flex-direction: column;
         gap: 8px;
-      }
-
-      .menu-bottom {
         order: 1;
-      }
-
-      .menu-search-text-mobile {
-        order: 2;
-        margin-top: 5px;
       }
     }
 
@@ -184,21 +119,6 @@
       #menu .menu-search-text-mobile {
         display: none;
       }
-    }
-
-    /* Mobile-spezifische Suchbox */
-    #menu .menu-search-text-mobile {
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    #menu .menu-search-text-mobile h4 {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    #menu .menu-search-text-mobile input[type=text]::placeholder {
-      color: #aaa;
     }
   </style>
 </head>
@@ -213,18 +133,8 @@
           <button onclick="goToNotas()">Notas explicativas</button>
         </div>
 
-        <button class="arrow-btn left" onclick="goToPrevPage()">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 5l8 7-8 7V5z"/>
-          </svg>
-          Página Anterior
-        </button>
-        <button class="arrow-btn right" onclick="goToNextPage()">
-          Página Siguiente
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 5l8 7-8 7V5z"/>
-          </svg>
-        </button>
+        <button class="arrow-btn left" onclick="goToPrevPage()">Página Anterior</button>
+        <button class="arrow-btn right" onclick="goToNextPage()">Página Siguiente</button>
       </div>
 
       <div class="menu-bottom">
@@ -248,18 +158,8 @@
     <!-- Rechtes Menü (nur Desktop) -->
     <div id="right-navigation">
       <h3>Navegar a:</h3>
-      <button class="arrow-btn left" onclick="goToPrevPage()">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 5l8 7-8 7V5z"/>
-        </svg>
-        Página Anterior
-      </button>
-      <button class="arrow-btn right" onclick="goToNextPage()">
-        Página Siguiente
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 5l8 7-8 7V5z"/>
-        </svg>
-      </button>
+      <button class="arrow-btn left" onclick="goToPrevPage()">Página Anterior</button>
+      <button class="arrow-btn right" onclick="goToNextPage()">Página Siguiente</button>
 
       <h4>Buscar frase:</h4>
       <input type="text" id="search-text-right" placeholder="Buscar palabra o frase" />
@@ -270,18 +170,13 @@
   <script>
     const url = 'meinedatei.pdf'; // Hier den Dateinamen eintragen
 
-    let pdfDoc = null,
-        pageNum = 1,
-        pageRendering = false,
-        pageNumPending = null;
-
+    let pdfDoc = null, pageNum = 1, pageRendering = false, pageNumPending = null;
     const canvas = document.getElementById('pdf-render');
     const ctx = canvas.getContext('2d');
     let currentScale = 1.5;
 
     function renderPage(num) {
       pageRendering = true;
-
       pdfDoc.getPage(num).then(function(page) {
         const viewport = page.getViewport({ scale: currentScale });
         canvas.height = viewport.height;
